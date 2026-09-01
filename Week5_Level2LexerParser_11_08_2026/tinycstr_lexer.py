@@ -41,6 +41,9 @@ class TinyCStrLexer(Lexer):
     keywords = {
         'int': 'INT',
         'print': 'PRINT',
+        'double': 'DOUBLE',
+        'char': 'CHAR',
+        'string': 'STRING'
         # TODO(week-5, stage-2a): add 'double': 'DOUBLE'
         # TODO(week-5, stage-2b): add 'char': 'CHAR', 'string': 'STRING'
     }
@@ -49,6 +52,12 @@ class TinyCStrLexer(Lexer):
     def ID(self, t):
         t.type = self.keywords.get(t.value, 'ID')
         return t
+
+    @_(r'\d+\.\d+')
+    def REAL_CONST(self, t):
+        t.value = float(t.value)
+        return t
+
 
     @_(r'\d+')
     def NUMBER(self, t):
@@ -67,6 +76,14 @@ class TinyCStrLexer(Lexer):
     REMAINDER = r'%'
     LPAREN = r'\('
     RPAREN = r'\)'
+    LT = r'<'
+    GT = r'>'
+    LE = r'<='
+    GE = r'>='
+    EQ = r'=='
+    NE = r'!='
+    QUESTION = r'\?'
+    COLON = r':'
 
     # ------------------------------------------------------------------
     # LEVEL 2, Stage 2a -- real constants
@@ -77,22 +94,25 @@ class TinyCStrLexer(Lexer):
     # reaches the parser -- see docs/sly_help2.md #1 for why
     # this has to be function-style, not just a style preference.
     #
-    # @_(r'\d+\.\d+')
-    # def REAL_CONST(self, t):
-    #     t.value = float(t.value)
-    #     return t
-
     # ------------------------------------------------------------------
     # LEVEL 2, Stage 2b -- char/string constants, relational operators
     # ------------------------------------------------------------------
     # TODO(week-5, stage-2b): CHAR_CONST -- a single character in single
     # quotes, e.g. 'x'. Function-style rule, strip the surrounding
     # quotes before returning (t.value = t.value[1:-1]).
+    @_(r'(".")|(\'.\')')
+    def CHAR_CONST(self, t):
+        t.value = t.value[1:-1]
+        return t
     #
     # TODO(week-5, stage-2b): STRING_CONST -- zero or more non-quote
     # characters in double quotes, e.g. "hello". Function-style rule,
     # strip the surrounding quotes the same way. (No escape-sequence
     # handling needed for Level 2 -- \" inside a string is out of scope.)
+    @_(r'(".*")|(\'*\')')
+    def STRING_CONST(self, t):
+        t.value = t.value[1:-1]
+        return t
     #
     # TODO(week-5, stage-2b): six relational operators as plain string
     # attributes: LT (<), GT (>), LE (<=), GE (>=), EQ (==), NE (!=).
